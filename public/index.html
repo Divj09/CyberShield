@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield - Advanced Security Testing Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #1a1f3a;
+            --bg-card: rgba(255,255,255,0.05);
+            --border: rgba(0,255,255,0.2);
+            --border-active: #00ffff;
+            --cyan: #00ffff;
+            --green: #00ff88;
+            --pink: #ff006e;
+            --orange: #ff6400;
+            --yellow: #ffc800;
+            --text: #ffffff;
+            --text-dim: #8892b0;
+            --text-muted: #5a6380;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .animated-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1040 25%, #0a0e27 50%, #0d1a2a 75%, #0a0e27 100%);
+            background-size: 400% 400%;
+            animation: bgShift 20s ease infinite;
+        }
+        @keyframes bgShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .grid-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background-image:
+                linear-gradient(rgba(0,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* ===== PARTICLES ===== */
+        .particle {
+            position: fixed;
+            width: 2px; height: 2px;
+            background: rgba(0,255,255,0.4);
+            border-radius: 50%;
+            animation: particleFloat linear infinite;
+            z-index: -1;
+            pointer-events: none;
+        }
+        @keyframes particleFloat {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) translateX(50px); opacity: 0; }
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            padding: 16px 40px;
+            background: rgba(10,14,39,0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 1000;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo {
+            font-size: 26px; font-weight: 700;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header-status {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; color: var(--text-dim);
+        }
+        .status-dot {
+            width: 8px; height: 8px;
+            background: var(--green); border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,255,136,0.4); }
+            50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(0,255,136,0); }
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 1200px; margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            text-align: center;
+            padding: 48px 20px 32px;
+        }
+        .hero h1 {
+            font-size: clamp(28px, 5vw, 44px);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--pink), var(--cyan), var(--green));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% auto;
+            animation: textShine 4s linear infinite;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+        @keyframes textShine { to { background-position: 200% center; } }
+        .hero p {
+            font-size: 17px; color: var(--text-dim);
+            max-width: 600px; margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ===== SCAN FORM ===== */
+        .scan-form {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px;
+            max-width: 900px;
+            margin: 0 auto 48px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 40px rgba(0,255,255,0.06);
+        }
+        .input-row {
+            display: flex; gap: 12px; margin-bottom: 28px;
+        }
+        .url-input {
+            flex: 1;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.07);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: monospace;
+        }
+        .url-input:focus {
+            outline: none;
+            border-color: var(--cyan);
+            box-shadow: 0 0 0 3px rgba(0,255,255,0.15);
+        }
+        .url-input::placeholder { color: var(--text-muted); }
+
+        /* Scan Options Grid */
+        .section-title {
+            font-size: 14px; font-weight: 600;
+            color: var(--cyan); text-transform: uppercase;
+            letter-spacing: 1.5px; margin-bottom: 16px;
+        }
+        .scan-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+        .option-card {
+            background: rgba(255,255,255,0.03);
+            border: 1.5px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all 0.25s;
+            user-select: none;
+        }
+        .option-card:hover {
+            border-color: rgba(235, 10, 10, 0.4);
+            background: rgba(0,255,255,0.04);
+            transform: translateY(-2px);
+        }
+        .option-card.active {
+            border-color: var(--green);
+            background: rgba(0,255,136,0.08);
+        }
+        .option-card input { display: none; }
+        .option-card h3 {
+            font-size: 14px; font-weight: 600; color: var(--text);
+            margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
+        }
+        .option-card p { font-size: 12px; color: var(--text-dim); line-height: 1.4; }
+        .option-card .check-indicator {
+            width: 16px; height: 16px; border-radius: 4px;
+            border: 1.5px solid rgba(255,255,255,0.2);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 10px; margin-left: auto; flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .option-card.active .check-indicator {
+            background: var(--green); border-color: var(--green); color: #000;
+        }
+
+        /* Advanced Settings */
+        .advanced-toggle {
+            background: none; border: none; color: var(--cyan);
+            cursor: pointer; font-size: 13px; padding: 8px 0;
+            display: flex; align-items: center; gap: 6px;
+            margin-bottom: 12px;
+        }
+        .advanced-toggle:hover { text-decoration: underline; }
+        .advanced-settings {
+            background: rgba(0,0,0,0.25);
+            border-radius: 10px; padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 24px;
+            display: none;
+        }
+        .advanced-settings.visible { display: block; }
+        .setting-row {
+            display: flex; justify-content: space-between;
+            align-items: center; padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 14px;
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .toggle-switch {
+            position: relative; width: 44px; height: 24px;
+            background: rgba(255,255,255,0.1); border-radius: 12px;
+            cursor: pointer; transition: background 0.3s;
+        }
+        .toggle-switch.active { background: linear-gradient(135deg, var(--cyan), var(--green)); }
+        .toggle-switch::after {
+            content: ''; position: absolute;
+            width: 20px; height: 20px; background: white;
+            border-radius: 50%; top: 2px; left: 2px;
+            transition: transform 0.3s;
+        }
+        .toggle-switch.active::after { transform: translateX(20px); }
+
+        /* Scan Button */
+        .scan-btn {
+            width: 100%; padding: 16px; font-size: 16px;
+            font-weight: 700; letter-spacing: 1px;
+            background: linear-gradient(135deg, var(--pink), #cc0058, var(--pink));
+            background-size: 200% auto;
+            border: none; border-radius: 10px;
+            color: white; cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            position: relative; overflow: hidden;
+        }
+        .scan-btn:hover:not(:disabled) {
+            background-position: right center;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255,0,110,0.3);
+        }
+        .scan-btn:disabled {
+            opacity: 0.5; cursor: not-allowed;
+        }
+
+        /* ===== SCANNING PROGRESS ===== */
+        .scanning-section {
+            display: none; text-align: center;
+            padding: 60px 20px;
+            max-width: 700px; margin: 0 auto;
+        }
+        .scanning-section.active { display: block; }
+
+        .scan-rings {
+            width: 120px; height: 120px;
+            margin: 0 auto 24px;
+            position: relative;
+        }
+        .ring {
+            position: absolute; width: 100%; height: 100%;
+            border: 2px solid transparent; border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+        }
+        .ring:nth-child(1) { border-top-color: var(--cyan); }
+        .ring:nth-child(2) {
+            width: 75%; height: 75%; top: 12.5%; left: 12.5%;
+            border-top-color: var(--green); animation-direction: reverse;
+            animation-duration: 2s;
+        }
+        .ring:nth-child(3) {
+            width: 50%; height: 50%; top: 25%; left: 25%;
+            border-top-color: var(--pink); animation-duration: 2.5s;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .scan-status-text {
+            font-size: 20px; font-weight: 600; color: var(--cyan);
+            margin-bottom: 8px;
+        }
+        .scan-sub-text { font-size: 14px; color: var(--text-dim); margin-bottom: 24px; }
+
+        .progress-container {
+            width: 100%; max-width: 500px;
+            margin: 0 auto 20px;
+        }
+        .progress-bar {
+            width: 100%; height: 8px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 4px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, var(--cyan), var(--green));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .progress-text {
+            font-size: 13px; color: var(--text-dim);
+            margin-top: 8px;
+        }
+
+        .scanner-list {
+            text-align: left; margin-top: 32px;
+            display: grid; gap: 8px;
+        }
+        .scanner-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 16px; border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            font-size: 14px;
+        }
+        .scanner-item .icon { font-size: 16px; width: 20px; text-align: center; }
+        .scanner-item .name { flex: 1; }
+        .scanner-item .badge {
+            font-size: 11px; padding: 2px 8px;
+            border-radius: 10px; font-weight: 600;
+        }
+        .scanner-item.pending .icon { color: var(--text-muted); }
+        .scanner-item.running .icon { color: var(--cyan); animation: spin 1s linear infinite; }
+        .scanner-item.running { border-left: 2px solid var(--cyan); }
+        .scanner-item.done { opacity: 0.7; }
+        .scanner-item.done .icon { color: var(--green); }
+        .scanner-item.error .icon { color: var(--pink); }
+        .badge.findings { background: rgba(255,0,110,0.2); color: var(--pink); }
+        .badge.clean { background: rgba(0,255,136,0.15); color: var(--green); }
+        .badge.running-badge { background: rgba(0,255,255,0.15); color: var(--cyan); }
+
+        /* ===== RESULTS ===== */
+        .results-section {
+            display: none; max-width: 1100px;
+            margin: 0 auto;
+        }
+        .results-section.active { display: block; }
+
+        .results-header {
+            text-align: center; margin-bottom: 40px;
+        }
+        .results-header h2 {
+            font-size: 32px; font-weight: 800;
+            background: linear-gradient(135deg, var(--cyan), var(--green));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; margin-bottom: 8px;
+        }
+        .results-meta {
+            font-size: 14px; color: var(--text-dim);
+            display: flex; align-items: center; justify-content: center;
+            gap: 20px; flex-wrap: wrap;
+        }
+        .results-meta span { display: flex; align-items: center; gap: 4px; }
+
+        /* Security Score */
+        .score-card {
+            display: flex; align-items: center; justify-content: center;
+            gap: 32px; margin-bottom: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px; padding: 32px;
+            flex-wrap: wrap;
+        }
+        .score-circle {
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            position: relative;
+        }
+        .score-circle .grade {
+            font-size: 48px; font-weight: 900;
+            line-height: 1;
+        }
+        .score-circle .score-label {
+            font-size: 12px; color: var(--text-dim);
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .grade-A-plus, .grade-A { color: var(--green); }
+        .grade-B-plus, .grade-B { color: var(--cyan); }
+        .grade-C { color: var(--yellow); }
+        .grade-D { color: var(--orange); }
+        .grade-F { color: var(--pink); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 12px; flex: 1; min-width: 300px;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.04);
+            border-radius: 10px; padding: 16px;
+            text-align: center;
+        }
+        .stat-box .num {
+            font-size: 32px; font-weight: 800; line-height: 1;
+        }
+        .stat-box .label {
+            font-size: 11px; color: var(--text-dim);
+            text-transform: uppercase; letter-spacing: 1px;
+            margin-top: 4px;
+        }
+        .stat-box.total .num { color: var(--text); }
+        .stat-box.critical .num { color: var(--pink); }
+        .stat-box.high .num { color: var(--orange); }
+        .stat-box.medium .num { color: var(--yellow); }
+        .stat-box.low .num { color: var(--green); }
+        .stat-box.info .num { color: var(--text-dim); }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex; gap: 8px; margin-bottom: 24px;
+            flex-wrap: wrap; align-items: center;
+        }
+        .filter-btn {
+            padding: 6px 14px; border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: transparent; color: var(--text-dim);
+            font-size: 13px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            border-color: var(--cyan);
+            background: rgba(0,255,255,0.1);
+            color: var(--cyan);
+        }
+        .filter-btn .count {
+            background: rgba(255,255,255,0.1);
+            padding: 1px 6px; border-radius: 8px;
+            font-size: 11px; margin-left: 4px;
+        }
+
+        /* Vulnerability Cards */
+        .vuln-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 16px;
+        }
+        .vuln-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+            animation: fadeUp 0.4s ease;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .vuln-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-active);
+            box-shadow: 0 8px 30px rgba(0,255,255,0.1);
+        }
+        .vuln-card-header {
+            display: flex; justify-content: space-between;
+            align-items: flex-start; gap: 12px;
+            margin-bottom: 10px;
+        }
+        .vuln-card-title {
+            font-size: 16px; font-weight: 700;
+            line-height: 1.3;
+        }
+        .severity-badge {
+            padding: 3px 10px; border-radius: 12px;
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            white-space: nowrap; flex-shrink: 0;
+        }
+        .severity-badge.critical {
+            background: rgba(255,0,110,0.2); color: var(--pink);
+            border: 1px solid rgba(255,0,110,0.4);
+            animation: criticalGlow 2s ease-in-out infinite;
+        }
+        @keyframes criticalGlow {
+            0%, 100% { box-shadow: 0 0 4px rgba(255,0,110,0.3); }
+            50% { box-shadow: 0 0 12px rgba(255,0,110,0.5); }
+        }
+        .severity-badge.high { background: rgba(255,100,0,0.2); color: var(--orange); border: 1px solid rgba(255,100,0,0.4); }
+        .severity-badge.medium { background: rgba(255,200,0,0.2); color: var(--yellow); border: 1px solid rgba(255,200,0,0.4); }
+        .severity-badge.low { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid rgba(0,255,136,0.3); }
+        .severity-badge.info { background: rgba(255,255,255,0.08); color: var(--text-dim); border: 1px solid rgba(255,255,255,0.1); }
+
+        .vuln-card-desc {
+            font-size: 13px; color: var(--text-dim);
+            line-height: 1.6; margin-bottom: 12px;
+        }
+        .vuln-card-location {
+            font-size: 12px; color: var(--cyan);
+            margin-bottom: 12px;
+            font-family: monospace;
+            background: rgba(0,255,255,0.06);
+            padding: 4px 8px; border-radius: 4px;
+            display: inline-block;
+        }
+        .vuln-card-details {
+            background: rgba(0,0,0,0.25);
+            border-radius: 8px; padding: 12px;
+        }
+        .detail-row {
+            display: flex; justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 12px;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-key { color: var(--cyan); font-weight: 600; }
+        .detail-val { color: var(--text-dim); text-align: right; max-width: 60%; word-break: break-word; }
+        .vuln-card-recommendation {
+            margin-top: 12px; padding: 10px;
+            background: rgba(0,255,136,0.05);
+            border-left: 3px solid var(--green);
+            border-radius: 0 6px 6px 0;
+            font-size: 12px; color: var(--text-dim);
+            line-height: 1.5;
+        }
+        .vuln-card-recommendation strong { color: var(--green); }
+
+        /* No findings card */
+        .no-findings {
+            text-align: center; padding: 60px 20px;
+            color: var(--text-dim);
+        }
+        .no-findings .icon { font-size: 48px; margin-bottom: 16px; }
+
+        /* Export Bar */
+        .export-bar {
+            display: flex; gap: 10px; margin-top: 32px;
+            justify-content: center; flex-wrap: wrap;
+        }
+        .export-btn {
+            padding: 10px 20px; border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.04);
+            color: var(--text-dim); cursor: pointer;
+            font-size: 13px; transition: all 0.2s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .export-btn:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            background: rgba(0,255,255,0.06);
+        }
+
+        /* ===== ERROR STATE ===== */
+        .error-box {
+            display: none; text-align: center;
+            padding: 40px; margin: 20px auto;
+            max-width: 500px;
+            background: rgba(255,0,110,0.08);
+            border: 1px solid rgba(255,0,110,0.3);
+            border-radius: 12px;
+        }
+        .error-box.active { display: block; }
+        .error-box h3 { color: var(--pink); margin-bottom: 8px; }
+        .error-box p { color: var(--text-dim); font-size: 14px; }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px; padding: 32px;
+            max-width: 480px; width: 90%;
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .modal-box h3 { font-size: 20px; margin-bottom: 8px; color: var(--cyan); }
+        .modal-box p { font-size: 14px; color: var(--text-dim); margin-bottom: 20px; }
+        .modal-close {
+            position: absolute; top: 16px; right: 16px;
+            background: none; border: none;
+            color: var(--text-dim); font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center; padding: 32px 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted); font-size: 13px;
+        }
+        .footer a { color: var(--cyan); text-decoration: none; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            header { padding: 12px 16px; }
+            .container { padding: 24px 16px 60px; }
+            .scan-form { padding: 20px; }
+            .input-row { flex-direction: column; }
+            .scan-options { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+            .vuln-grid { grid-template-columns: 1fr; }
+            .score-card { flex-direction: column; padding: 24px; }
+            .stats-grid { min-width: auto; }
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            padding: 12px 24px; border-radius: 10px;
+            font-size: 14px; z-index: 3000;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s;
+            pointer-events: none;
+        }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } }
+        @keyframes toastOut { to { opacity: 0; transform: translateX(-50%) translateY(20px); } }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    <div class="grid-overlay"></div>
+    <div id="particles"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">⚡ CyberShield</div>
+        <div class="header-status">
+            <div class="status-dot"></div>
+            <span>Scanner Online</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Hero -->
+        <div class="hero">
+            <h1>University Website Security Scanner</h1>
+            <p>Discover vulnerabilities before attackers do. Real-time security analysis powered by 13 specialized scanning modules.</p>
+        </div>
+
+        <!-- Scan Form -->
+        <div class="scan-form" id="scanForm">
+            <div class="input-row">
+                <input type="url" class="url-input" id="targetUrl"
+                    placeholder="https://university-website.edu" required>
+            </div>
+
+            <div class="section-title">Select Scans</div>
+            <div class="scan-options" id="scanOptions">
+                <div class="option-card active" data-key="headers">
+                    <input type="checkbox" checked>
+                    <h3><span>🛡️</span> Security Headers</h3>
+                    <p>HTTP security header analysis</p>
+                </div>
+                <div class="option-card active" data-key="ssl">
+                    <input type="checkbox" checked>
+                    <h3><span>🔒</span> SSL/TLS</h3>
+                    <p>Certificate & encryption audit</p>
+                </div>
+                <div class="option-card active" data-key="cookies">
+                    <input type="checkbox" checked>
+                    <h3><span>🍪</span> Cookie Security</h3>
+                    <p>Cookie flags & configuration</p>
+                </div>
+                <div class="option-card active" data-key="xss">
+                    <input type="checkbox" checked>
+                    <h3><span>🔓</span> XSS Detection</h3>
+                    <p>Cross-Site Scripting probes</p>
+                </div>
+                <div class="option-card active" data-key="sqli">
+                    <input type="checkbox" checked>
+                    <h3><span>🗃️</span> SQL Injection</h3>
+                    <p>Database injection testing</p>
+                </div>
+                <div class="option-card active" data-key="csrf">
+                    <input type="checkbox" checked>
+                    <h3><span>🎭</span> CSRF</h3>
+                    <p>Cross-Site Request Forgery</p>
+                </div>
+                <div class="option-card" data-key="directory">
+                    <input type="checkbox">
+                    <h3><span>📁</span> Directory Scan</h3>
+                    <p>Exposed files & directories</p>
+                </div>
+                <div class="option-card" data-key="ports">
+                    <input type="checkbox">
+                    <h3><span>🌐</span> Port Scan</h3>
+                    <p>Open port detection</p>
+                </div>
+                <div class="option-card" data-key="tech">
+                    <input type="checkbox">
+                    <h3><span>⚙️</span> Tech Detection</h3>
+                    <p>Framework & version detection</p>
+                </div>
+                <div class="option-card" data-key="info">
+                    <input type="checkbox">
+                    <h3><span>📋</span> Info Disclosure</h3>
+                    <p>Leaked information check</p>
+                </div>
+                <div class="option-card" data-key="malware">
+                    <input type="checkbox">
+                    <h3><span>🦠</span> Malware Check</h3>
+                    <p>Malicious code detection</p>
+                </div>
+                <div class="option-card" data-key="ddos">
+                    <input type="checkbox">
+                    <h3><span>⚔️</span> DDoS Check</h3>
+                    <p>DDoS protection audit</p>
+                </div>
+                <div class="option-card" data-key="api">
+                    <input type="checkbox">
+                    <h3><span>🔌</span> API Security</h3>
+                    <p>Exposed API endpoints</p>
+                </div>
+            </div>
+
+            <button class="advanced-toggle" onclick="toggleAdvanced()">
+                ▶ Advanced Settings
+            </button>
+            <div class="advanced-settings" id="advancedSettings">
+                <div class="setting-row">
+                    <span>Request Timeout (ms)</span>
+                    <input type="number" value="15000" min="5000" max="60000" step="1000"
+                        id="timeoutSetting" style="width:80px; background:rgba(255,255,255,0.1);
+                        border:1px solid rgba(255,255,255,0.15); border-radius:6px;
+                        padding:4px 8px; color:white; font-size:13px;">
+                </div>
+                <div class="setting-row">
+                    <span>Delay Between Requests (ms)</span>
+                    <input type="number" value="200" min="0" max="2000" step="50"
+                        id="delaySetting" style="width:80px; background:rgba(255,255,255,0.1);
+                        border:1px solid rgba(255,255,255,0.15); border-radius:6px;
+                        padding:4px 8px; color:white; font-size:13px;">
+                </div>
+            </div>
+
+            <button class="scan-btn" id="scanBtn" onclick="startScan()">
+                🚀 INITIATE SECURITY SCAN
+            </button>
+        </div>
+
+        <!-- Error -->
+        <div class="error-box" id="errorBox">
+            <h3>⚠️ Scan Error</h3>
+            <p id="errorMessage"></p>
+        </div>
+
+        <!-- Scanning Progress -->
+        <div class="scanning-section" id="scanningSection">
+            <div class="scan-rings">
+                <div class="ring"></div>
+                <div class="ring"></div>
+                <div class="ring"></div>
+            </div>
+            <div class="scan-status-text" id="scanStatusText">Initializing scan...</div>
+            <div class="scan-sub-text" id="scanSubText">Connecting to target server</div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">0%</div>
+            </div>
+            <div class="scanner-list" id="scannerList"></div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <h2>Security Analysis Report</h2>
+                <div class="results-meta" id="resultsMeta"></div>
+            </div>
+
+            <div class="score-card" id="scoreCard"></div>
+
+            <div class="filter-bar" id="filterBar">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="critical">Critical</button>
+                <button class="filter-btn" data-filter="high">High</button>
+                <button class="filter-btn" data-filter="medium">Medium</button>
+                <button class="filter-btn" data-filter="low">Low</button>
+                <button class="filter-btn" data-filter="info">Info</button>
+            </div>
+
+            <div class="vuln-grid" id="vulnGrid"></div>
+
+            <div class="export-bar">
+                <button class="export-btn" onclick="exportJSON()">📄 Export JSON</button>
+                <button class="export-btn" onclick="exportHTML()">📝 Export HTML Report</button>
+                <button class="export-btn" onclick="window.print()">🖨️ Print Report</button>
+                <button class="export-btn" onclick="newScan()">🔄 New Scan</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        CyberShield Security Scanner v1.0 — Built for University Security Teams<br>
+        <small>Only scan websites you have authorization to test.</small>
+    </div>
+
+    <script>
+    // ============================================================
+    //  CyberShield Frontend - Scan Controller
+    // ============================================================
+
+    let scanResults = null;
+    let eventSource = null;
+
+    // --- Initialize Particles ---
+    function createParticles() {
+        const container = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 15 + 's';
+            p.style.animationDuration = (12 + Math.random() * 10) + 's';
+            container.appendChild(p);
+        }
+    }
+    window.addEventListener('load', createParticles);
+
+    // --- Toggle Scan Options ---
+    document.querySelectorAll('.option-card').forEach(card => {
+        card.addEventListener('click', () => {
+            card.classList.toggle('active');
+            const cb = card.querySelector('input[type="checkbox"]');
+            cb.checked = !cb.checked;
+        });
+    });
+
+    // --- Toggle Advanced Settings ---
+    function toggleAdvanced() {
+        const el = document.getElementById('advancedSettings');
+        const btn = document.querySelector('.advanced-toggle');
+        el.classList.toggle('visible');
+        btn.textContent = el.classList.contains('visible') ? '▼ Advanced Settings' : '▶ Advanced Settings';
+    }
+
+    // --- Get Selected Options ---
+    function getSelectedOptions() {
+        const options = {};
+        document.querySelectorAll('.option-card').forEach(card => {
+            const key = card.dataset.key;
+            const cb = card.querySelector('input[type="checkbox"]');
+            options[key] = cb.checked;
+        });
+        return options;
+    }
+
+    // --- Show/Hide Sections ---
+    function showSection(id) {
+        ['scanForm', 'scanningSection', 'resultsSection', 'errorBox'].forEach(s => {
+            document.getElementById(s).classList.remove('active');
+            document.getElementById(s).style.display = 'none';
+        });
+        const el = document.getElementById(id);
+        if (id === 'errorBox') {
+            el.classList.add('active');
+        } else {
+            el.classList.add('active');
+        }
+        el.style.display = id === 'scanForm' ? 'block' : (id === 'errorBox' ? 'block' : 'block');
+    }
+
+    function showError(msg) {
+        document.getElementById('errorMessage').textContent = msg;
+        showSection('errorBox');
+    }
+
+    // --- Start Scan ---
+    function startScan() {
+        const url = document.getElementById('targetUrl').value.trim();
+        if (!url) {
+            showToast('Please enter a website URL');
+            return;
+        }
+
+        const options = getSelectedOptions();
+        const hasAnySelected = Object.values(options).some(v => v);
+        if (!hasAnySelected) {
+            showToast('Please select at least one scan type');
+            return;
+        }
+
+        // Show scanning section
+        showSection('scanningSection');
+        document.getElementById('scanStatusText').textContent = 'Starting scan...';
+        document.getElementById('scanSubText').textContent = `Target: ${url}`;
+        document.getElementById('progressFill').style.width = '0%';
+        document.getElementById('progressText').textContent = '0%';
+        document.getElementById('scannerList').innerHTML = '';
+
+        scanResults = { findings: [], target: url };
+
+        // Build scanner list UI
+        const scannerNames = {
+            headers: 'Security Headers', ssl: 'SSL/TLS Analysis',
+            cookies: 'Cookie Security', tech: 'Technology Detection',
+            xss: 'XSS Detection', sqli: 'SQL Injection',
+            csrf: 'CSRF Detection', directory: 'Directory Enumeration',
+            ports: 'Port Scanning', info: 'Information Disclosure',
+            malware: 'Malware Detection', ddos: 'DDoS Protection',
+            api: 'API Security'
+        };
+
+        const listEl = document.getElementById('scannerList');
+        Object.entries(options).filter(([,v]) => v).forEach(([key]) => {
+            const item = document.createElement('div');
+            item.className = 'scanner-item pending';
+            item.id = `scanner-${key}`;
+            item.innerHTML = `
+                <span class="icon">⏳</span>
+                <span class="name">${scannerNames[key] || key}</span>
+                <span class="badge">Pending</span>
+            `;
+            listEl.appendChild(item);
+        });
+
+        // Connect to SSE endpoint
+        const params = new URLSearchParams({
+            url: url,
+            options: JSON.stringify(options)
+        });
+
+        if (eventSource) eventSource.close();
+        eventSource = new EventSource(`/api/scan?${params.toString()}`);
+
+        eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            handleScanEvent(data);
+        };
+
+        eventSource.onerror = () => {
+            eventSource.close();
+            if (scanResults.findings.length === 0) {
+                showError('Connection to scanner lost. The server may be restarting or the target is unreachable.');
+            }
+        };
+    }
+
+    // --- Handle Scan Events ---
+    function handleScanEvent(data) {
+        switch (data.type) {
+            case 'start':
+                document.getElementById('scanStatusText').textContent = 'Scan in progress...';
+                break;
+
+            case 'progress': {
+                const scannerKey = getScannerKey(data.scanner);
+                const item = document.getElementById(`scanner-${scannerKey}`);
+                if (item) {
+                    item.className = 'scanner-item running';
+                    item.innerHTML = `
+                        <span class="icon">🔄</span>
+                        <span class="name">${data.scanner}</span>
+                        <span class="badge running-badge">Scanning...</span>
+                    `;
+                }
+                document.getElementById('scanStatusText').textContent = `Running: ${data.scanner}`;
+                document.getElementById('progressFill').style.width = data.percentage + '%';
+                document.getElementById('progressText').textContent = `${data.scanner} (${data.index}/${data.total})`;
+                break;
+            }
+
+            case 'scanner_complete': {
+                const scannerKey = getScannerKey(data.scanner);
+                const item = document.getElementById(`scanner-${scannerKey}`);
+                if (item) {
+                    const hasFindings = data.findingCount > 0;
+                    item.className = 'scanner-item done';
+                    item.innerHTML = `
+                        <span class="icon">✅</span>
+                        <span class="name">${data.scanner}</span>
+                        <span class="badge ${hasFindings ? 'findings' : 'clean'}">
+                            ${hasFindings ? data.findingCount + ' found' : 'Clean'}
+                        </span>
+                    `;
+                }
+                document.getElementById('progressFill').style.width = data.percentage + '%';
+                break;
+            }
+
+            case 'scanner_error': {
+                const scannerKey = getScannerKey(data.scanner);
+                const item = document.getElementById(`scanner-${scannerKey}`);
+                if (item) {
+                    item.className = 'scanner-item error';
+                    item.innerHTML = `
+                        <span class="icon">❌</span>
+                        <span class="name">${data.scanner}</span>
+                        <span class="badge" style="background:rgba(255,255,255,0.1);color:var(--text-dim);">Error</span>
+                    `;
+                }
+                break;
+            }
+
+            case 'complete':
+                eventSource.close();
+                scanResults = data;
+                renderResults(data);
+                break;
+        }
+    }
+
+    // Map scanner names back to keys
+    function getScannerKey(name) {
+        const map = {
+            'Security Headers': 'headers', 'SSL/TLS Analysis': 'ssl',
+            'Cookie Security': 'cookies', 'Technology Detection': 'tech',
+            'XSS Detection': 'xss', 'SQL Injection': 'sqli',
+            'CSRF Detection': 'csrf', 'Directory Enumeration': 'directory',
+            'Port Scanning': 'ports', 'Information Disclosure': 'info',
+            'Malware Detection': 'malware', 'DDoS Protection': 'ddos',
+            'API Security': 'api'
+        };
+        return map[name] || name.toLowerCase().replace(/\s+/g, '');
+    }
+
+    // --- Render Results ---
+    function renderResults(data) {
+        showSection('resultsSection');
+
+        const { findings, stats, score, grade, duration, target, timestamp } = data;
+
+        // Meta info
+        document.getElementById('resultsMeta').innerHTML = `
+            <span>🎯 ${target}</span>
+            <span>⏱️ ${duration}s</span>
+            <span>📅 ${new Date(timestamp).toLocaleString()}</span>
+        `;
+
+        // Score card
+        document.getElementById('scoreCard').innerHTML = `
+            <div class="score-circle" style="border: 3px solid ${getGradeColor(grade)}">
+                <div class="grade grade-${grade.replace('+', '-plus')}">${grade}</div>
+                <div class="score-label">${score}/100</div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-box total"><div class="num">${stats.total}</div><div class="label">Total</div></div>
+                <div class="stat-box critical"><div class="num">${stats.critical}</div><div class="label">Critical</div></div>
+                <div class="stat-box high"><div class="num">${stats.high}</div><div class="label">High</div></div>
+                <div class="stat-box medium"><div class="num">${stats.medium}</div><div class="label">Medium</div></div>
+                <div class="stat-box low"><div class="num">${stats.low}</div><div class="label">Low</div></div>
+                <div class="stat-box info"><div class="num">${stats.info}</div><div class="label">Info</div></div>
+            </div>
+        `;
+
+        // Update filter counts
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            const f = btn.dataset.filter;
+            const count = f === 'all' ? stats.total : (stats[f] || 0);
+            btn.innerHTML = `${btn.textContent.split(' (')[0]} <span class="count">${count}</span>`;
+        });
+
+        // Render vulnerability cards
+        renderVulnCards(findings, 'all');
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderVulnCards(findings, btn.dataset.filter);
+            });
+        });
+
+        // Scroll to results
+        document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderVulnCards(findings, filter) {
+        const grid = document.getElementById('vulnGrid');
+        const filtered = filter === 'all' ? findings : findings.filter(f => f.severity === filter);
+
+        if (filtered.length === 0) {
+            grid.innerHTML = `
+                <div class="no-findings" style="grid-column: 1/-1;">
+                    <div class="icon">${filter === 'all' ? '🎉' : '✅'}</div>
+                    <h3>${filter === 'all' ? 'No Vulnerabilities Found!' : `No ${filter} severity findings`}</h3>
+                    <p>${filter === 'all' ? 'The target appears to be well-secured.' : 'Try a different filter.'}</p>
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = filtered.map((v, i) => `
+            <div class="vuln-card" style="animation-delay: ${i * 0.05}s">
+                <div class="vuln-card-header">
+                    <div class="vuln-card-title">${escapeHTML(v.title)}</div>
+                    <span class="severity-badge ${v.severity}">${v.severity}</span>
+                </div>
+                <div class="vuln-card-desc">${escapeHTML(v.description)}</div>
+                ${v.location ? `<div class="vuln-card-location">${escapeHTML(v.location)}</div>` : ''}
+                ${v.details ? `
+                    <div class="vuln-card-details">
+                        ${Object.entries(v.details).map(([k, val]) => `
+                            <div class="detail-row">
+                                <span class="detail-key">${escapeHTML(k)}</span>
+                                <span class="detail-val">${escapeHTML(String(val))}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+                ${v.recommendation ? `
+                    <div class="vuln-card-recommendation">
+                        <strong>Fix:</strong> ${escapeHTML(v.recommendation)}
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+    }
+
+    function getGradeColor(grade) {
+        const colors = {
+            'A+': '#00ff88', 'A': '#00ff88', 'B+': '#00ffff', 'B': '#00ffff',
+            'C': '#ffc800', 'D': '#ff6400', 'F': '#ff006e'
+        };
+        return colors[grade] || '#ffffff';
+    }
+
+    function escapeHTML(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // --- Export Functions ---
+    function exportJSON() {
+        if (!scanResults) return;
+        const blob = new Blob([JSON.stringify(scanResults, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cybershield-report-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('JSON report downloaded!');
+    }
+
+    function exportHTML() {
+        if (!scanResults) return;
+        const { findings, stats, score, grade, duration, target, timestamp } = scanResults;
+
+        const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>CyberShield Report - ${target}</title>
+<style>
+    body{font-family:system-ui,sans-serif;max-width:800px;margin:0 auto;padding:40px 20px;background:#f5f5f5;color:#333;}
+    h1{color:#0a0e27;border-bottom:3px solid #0a0e27;padding-bottom:10px;}
+    .meta{color:#666;margin:10px 0 30px;}
+    .score{display:inline-block;padding:15px 30px;border-radius:10px;font-size:36px;font-weight:900;margin:20px 0;}
+    .stats{display:flex;gap:15px;margin:20px 0;flex-wrap:wrap;}
+    .stat{padding:10px 20px;border-radius:8px;background:#fff;text-align:center;border:1px solid #ddd;}
+    .stat .n{font-size:28px;font-weight:800;}
+    .stat .l{font-size:12px;color:#666;text-transform:uppercase;}
+    .finding{background:#fff;border:1px solid #ddd;border-radius:8px;padding:16px;margin:12px 0;}
+    .finding h3{margin-bottom:6px;}
+    .critical{border-left:4px solid #ff006e;} .high{border-left:4px solid #ff6400;}
+    .medium{border-left:4px solid #ffc800;} .low{border-left:4px solid #00ff88;}
+    .info{border-left:4px solid #8892b0;}
+    .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;text-transform:uppercase;}
+    .badge-critical{background:#ffe0eb;color:#ff006e;} .badge-high{background:#fff0e0;color:#ff6400;}
+    .badge-medium{background:#fff8e0;color:#b8960a;} .badge-low{background:#e0ffe8;color:#00884a;}
+    .badge-info{background:#e8e8e8;color:#555;}
+    .rec{background:#f0fff4;border-left:3px solid #00ff88;padding:10px;margin-top:10px;font-size:13px;border-radius:0 6px 6px 0;}
+    .detail{font-size:12px;color:#666;margin-top:8px;}
+</style></head><body>
+<h1>⚡ CyberShield Security Report</h1>
+<div class="meta">
+    <strong>Target:</strong> ${target}<br>
+    <strong>Date:</strong> ${new Date(timestamp).toLocaleString()}<br>
+    <strong>Duration:</strong> ${duration} seconds
+</div>
+<div class="score" style="background:${getGradeColor(grade)}22;color:${getGradeColor(grade)}">Score: ${score}/100 — Grade ${grade}</div>
+<div class="stats">
+    <div class="stat"><div class="n">${stats.total}</div><div class="l">Total</div></div>
+    <div class="stat"><div class="n" style="color:#ff006e">${stats.critical}</div><div class="l">Critical</div></div>
+    <div class="stat"><div class="n" style="color:#ff6400">${stats.high}</div><div class="l">High</div></div>
+    <div class="stat"><div class="n" style="color:#ffc800">${stats.medium}</div><div class="l">Medium</div></div>
+    <div class="stat"><div class="n" style="color:#00aa55">${stats.low}</div><div class="l">Low</div></div>
+    <div class="stat"><div class="n" style="color:#888">${stats.info}</div><div class="l">Info</div></div>
+</div>
+<h2 style="margin-top:30px;">Findings</h2>
+${findings.map(f => `
+<div class="finding ${f.severity}">
+    <h3>${f.title} <span class="badge badge-${f.severity}">${f.severity}</span></h3>
+    <p>${f.description}</p>
+    ${f.location ? `<p style="font-family:monospace;font-size:12px;color:#00a;margin-top:6px;">📍 ${f.location}</p>` : ''}
+    ${f.details ? `<div class="detail">${Object.entries(f.details).map(([k,v]) => `<strong>${k}:</strong> ${v}`).join(' &bull; ')}</div>` : ''}
+    ${f.recommendation ? `<div class="rec"><strong>Fix:</strong> ${f.recommendation}</div>` : ''}
+</div>`).join('')}
+<footer style="margin-top:40px;padding-top:20px;border-top:1px solid #ddd;font-size:12px;color:#999;text-align:center;">
+    Generated by CyberShield Security Scanner — ${new Date().toLocaleString()}
+</footer>
+</body></html>`;
+
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cybershield-report-${new Date().toISOString().slice(0, 10)}.html`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('HTML report downloaded!');
+    }
+
+    // --- New Scan ---
+    function newScan() {
+        if (eventSource) eventSource.close();
+        showSection('scanForm');
+    }
+
+    // --- Toast ---
+    function showToast(msg) {
+        const existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    }
+
+    // --- Init ---
+    showSection('scanForm');
+
+    // Enter key to start scan
+    document.getElementById('targetUrl').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') startScan();
+    });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a01ef6736b125489',t:'MTc3OTgyMTM5Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

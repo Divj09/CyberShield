@@ -2,6 +2,19 @@
 
 A real-time web vulnerability scanner built for university security teams to audit university-owned websites.
 
+## 📸 Screenshots
+
+### Main Scan Interface
+![Home Page](screenshots/home.png)
+
+### Scanning in Progress
+![Scanning Animation](screenshots/scans.png)
+
+### Results Dashboard
+![Results](screenshots/results.png)
+
+---
+
 ## What It Does
 
 - Checks Security Headers (CSP, HSTS, X-Frame-Options)
